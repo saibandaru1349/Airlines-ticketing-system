@@ -1,0 +1,39 @@
+# Render Blueprint: deploys the API (Docker) and the website (static) together.
+# Dashboard -> New -> Blueprint -> pick this repo. You will be asked for the values marked sync:false.
+services:
+  - type: web
+    name: skybook-api
+    runtime: docker
+    rootDir: backend
+    plan: free
+    envVars:
+      - key: DB_URL            # jdbc:mysql://HOST:PORT/defaultdb?sslMode=REQUIRED
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: JWT_SECRET        # generated for you (base64, 256-bit)
+        generateValue: true
+      - key: ADMIN_EMAIL
+        value: admin@airline.com
+      - key: ADMIN_PASSWORD    # choose a strong password
+        sync: false
+      - key: CORS_ORIGINS      # your website URL, e.g. https://skybook-web.onrender.com
+        sync: false
+      - key: SEED_DEMO
+        value: "true"
+
+  - type: web
+    name: skybook-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL      # your API URL, e.g. https://skybook-api.onrender.com
+        sync: false
